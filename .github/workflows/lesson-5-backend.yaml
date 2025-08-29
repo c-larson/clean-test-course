@@ -13,6 +13,10 @@ jobs:
       name: Execute the PyCharm security test
       steps:
         - uses: actions/checkout@v4
+        - name: disable debug
+          run: |
+            sed -i 's/DEBUG = True/DEBUG = False/g' \
+            hangry_api/hangry_api/settings.py
         - name: Run PyCharm Security
           uses: tonybaloney/pycharm-security@1.25.1
   build_and_test:
@@ -35,6 +39,12 @@ jobs:
         run: |
           coverage run -m --source=./hangry_api pytest
           coverage report
+    security_test:
+      needs: [deploy]
+      runs-on: ubuntu-latest
+      steps:
+        - name: ZAP Baseline Scan
+          uses: zaproxy/action-baseline@v0.14.0
   deploy:
     needs: [build_and_test]
     runs-on: ubuntu-latest
